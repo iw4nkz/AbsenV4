@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Absensi Kantor — SRIKANDI</title>
+  <style>
+    :root{
+      --blue:#3b82f6; --blue-dk:#2563eb;
+      --ink:#0f172a; --ink2:#475569;
+      --bg:#f1f5f9;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{
+      height:100%;overflow:hidden;
+      font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Arial;
+      background:var(--bg);
+    }
+
+    /* ===== IFRAME UTAMA ===== */
+    #appFrame{
+      width:100%;height:100%;border:none;display:block;
+    }
+
+    /* ===== LOADING OVERLAY ===== */
+    #loadingOverlay{
+      position:fixed;inset:0;background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:14px;z-index:10;transition:opacity .3s;
+    }
+    .spinner{
+      width:38px;height:38px;border-radius:50%;
+      border:4px solid #dbeafe;border-top-color:var(--blue);
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #loadingOverlay p{font-size:13px;color:var(--ink2);font-weight:600}
+
+    /* ===== FALLBACK BANNER (GPS/Kamera diblok di iframe) ===== */
+    #fallbackBanner{
+      display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;
+      background:#fff;border-top:1px solid #e2e8f0;
+      padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+      box-shadow:0 -8px 24px rgba(15,23,42,.08);
+    }
+    #fallbackBanner.show{display:block}
+    #fallbackBanner .fb-title{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px}
+    #fallbackBanner .fb-desc{font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:10px}
+    #fallbackBanner button{
+      width:100%;padding:13px;border:none;border-radius:10px;
+      background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      font-size:14px;font-weight:700;cursor:pointer;
+    }
+    #fallbackBanner button:active{opacity:.85}
+    #fallbackClose{
+      position:absolute;top:8px;right:10px;background:none;border:none;
+      color:var(--ink2);font-size:16px;width:auto;padding:4px 8px;cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay, hilang begitu iframe selesai load -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Memuat aplikasi absensi...</p>
+  </div>
+
+  <!-- GANTI URL DI BAWAH INI DENGAN URL WEB APP GAS (…/exec) -->
+  <iframe
+    id="appFrame"
+    src="https://script.google.com/macros/s/GANTI_DENGAN_ID_DEPLOYMENT_ANDA/exec"
+    allow="geolocation *; camera *"
+    allowfullscreen
+  ></iframe>
+
+  <!-- Banner fallback kalau GPS/kamera diblok karena iframe -->
+  <div id="fallbackBanner">
+    <button id="fallbackClose" onclick="dismissFallback_()">✕</button>
+    <div class="fb-title">⚠️ Lokasi/Kamera tidak bisa diakses</div>
+    <div class="fb-desc">Browser Anda memblokir izin lokasi atau kamera saat aplikasi dibuka dalam tampilan tertanam. Silakan buka langsung di tab penuh agar absensi bisa berjalan normal.</div>
+    <button onclick="bukaTabPenuh_()">Buka di Tab Penuh</button>
+  </div>
+
+  <script>
+    const GAS_URL = document.getElementById('appFrame').src;
+
+    // Sembunyikan loading overlay setelah iframe termuat
+    const frame = document.getElementById('appFrame');
+    const overlay = document.getElementById('loadingOverlay');
+    let overlayHidden = false;
+    function hideOverlay_() {
+      if(overlayHidden) return;
+      overlayHidden = true;
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 300);
+    }
+    frame.addEventListener('load', hideOverlay_);
+    // Jaga-jaga kalau event load telat/tidak terpicu
+    setTimeout(hideOverlay_, 4000);
+
+    // ===== Deteksi permission geolocation =====
+    function showFallback_() {
+      document.getElementById('fallbackBanner').classList.add('show');
+    }
+    function dismissFallback_() {
+      document.getElementById('fallbackBanner').classList.remove('show');
+    }
+    function bukaTabPenuh_() {
+      window.open(GAS_URL, '_blank');
+    }
+
+    // Cek status permission geolocation kalau browser mendukung Permissions API
+    if(navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' })
+        .then(res => {
+          if(res.state === 'denied') showFallback_();
+          res.onchange = () => { if(res.state === 'denied') showFallback_(); };
+        })
+        .catch(() => { /* browser lama, biarkan tanpa fallback otomatis */ });
+    }
+
+    // Deteksi khusus in-app browser (WhatsApp, Instagram, Telegram, dll)
+    // yang hampir selalu block GPS di iframe cross-origin.
+    (function detectInAppBrowser_() {
+      const ua = navigator.userAgent || '';
+      const isInApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Twitter|TikTok/i.test(ua);
+      if(isInApp) showFallback_();
+    })();
+  </script>
+</body>
+</html>
