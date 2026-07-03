@@ -1,7 +1,7 @@
 {
   "id": "com.absenv4",
   "name": "ABSENSI",
-  "short_name": "ABSEN",
+  "short_name": "ABSEN SDIM",
   "description": "Aplikasi Absensi Karyawan Berbasis GPS Dan Selfie",
   "start_url": "/?source=pwa",
   "display": "standalone",
