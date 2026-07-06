@@ -4,143 +4,307 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   
+  <!-- ✅ Preconnect buat speed -->
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://lh3.googleusercontent.com">
-  <link rel="preconnect" href="https://i.ibb.co.com">
   
+  <!-- ✅ PWA Support -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1a2a1a">
-  <!-- ✅ Apple PWA — pakai file lokal -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ABSEN SDIM">
   <link rel="apple-touch-icon" href="/icon-192.png">
   
   <title>Absensi Kantor — SRIKANDI</title>
+  
   <style>
-    :root{
-      --blue:#3b82f6; --blue-dk:#2563eb;
-      --ink:#0f172a; --ink2:#475569;
-      --bg:#f1f5f9;
+    /* ===== RESET & LAYOUT ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{
-      height:100%;overflow:hidden;
-      font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Arial;
-      background:var(--bg);
-    }
-
-    /* ===== IFRAME UTAMA ===== */
-    #appFrame{
-      width:100%;height:100%;border:none;display:block;
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #f1f5f9;
+      overflow: hidden;
     }
 
     /* ===== LOADING OVERLAY ===== */
-    #loadingOverlay{
-      position:fixed;inset:0;background:var(--bg);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:14px;z-index:10;transition:opacity .3s;
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      transition: opacity 0.5s ease;
     }
-    .spinner{
-      width:38px;height:38px;border-radius:50%;
-      border:4px solid #dbeafe;border-top-color:var(--blue);
-      animation:spin .8s linear infinite;
+    #loadingOverlay.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
-    @keyframes spin{to{transform:rotate(360deg)}}
-    #loadingOverlay p{font-size:13px;color:var(--ink2);font-weight:600}
 
-    /* ===== FALLBACK BANNER (GPS/Kamera diblok di iframe) ===== */
-    #fallbackBanner{
-      display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;
-      background:#fff;border-top:1px solid #e2e8f0;
-      padding:14px 16px calc(14px + env(safe-area-inset-bottom));
-      box-shadow:0 -8px 24px rgba(15,23,42,.08);
+    /* ===== SPINNER ===== */
+    .spinner-container {
+      position: relative;
+      width: 56px;
+      height: 56px;
     }
-    #fallbackBanner.show{display:block}
-    #fallbackBanner .fb-title{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px}
-    #fallbackBanner .fb-desc{font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:10px}
-    #fallbackBanner button{
-      width:100%;padding:13px;border:none;border-radius:10px;
-      background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
-      font-size:14px;font-weight:700;cursor:pointer;
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 5px solid #dbeafe;
+      border-top-color: #3b82f6;
+      animation: spin 0.8s linear infinite;
     }
-    #fallbackBanner button:active{opacity:.85}
-    #fallbackClose{
-      position:absolute;top:8px;right:10px;background:none;border:none;
-      color:var(--ink2);font-size:16px;width:auto;padding:4px 8px;cursor:pointer;
+    .spinner-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== LOADING TEXT ===== */
+    .loading-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      letter-spacing: 0.3px;
+    }
+    .loading-sub {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: -6px;
+    }
+
+    /* ===== PROGRESS BAR PALSU ===== */
+    .progress-wrap {
+      width: 220px;
+      max-width: 70vw;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #667eea, #764ba2);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* ===== TIPS RANDOM ===== */
+    .loading-tips {
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.5;
+      margin-top: 4px;
+      min-height: 36px;
+    }
+
+    /* ===== LOGO ===== */
+    .logo-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+      margin-bottom: 4px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      .logo-icon { width: 52px; height: 52px; font-size: 22px; }
+      .loading-text { font-size: 14px; }
+      .loading-sub { font-size: 12px; }
+      .progress-wrap { width: 180px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Loading overlay, hilang begitu iframe selesai load -->
+  <!-- ==========================================================
+       LOADING OVERLAY DENGAN PROGRESS BAR PALSU & TIPS
+       ========================================================== -->
   <div id="loadingOverlay">
-    <div class="spinner"></div>
-    <p>Memuat aplikasi absensi...</p>
+    <div class="logo-icon">📋</div>
+    <div class="loading-text">⏳ Memuat Aplikasi Absensi</div>
+    <div class="loading-sub">Mohon tunggu sebentar...</div>
+    
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <div class="spinner-inner">📱</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="loading-tips" id="loadingTips">
+      💡 Pastikan GPS aktif untuk absensi lokasi
+    </div>
   </div>
 
-  <!-- GANTI URL DI BAWAH INI DENGAN URL WEB APP GAS (…/exec) -->
+  <!-- ==========================================================
+       IFRAME UTAMA (Redirect akan menggantikan ini)
+       ========================================================== -->
   <iframe
     id="appFrame"
     src="https://script.google.com/macros/s/AKfycbzNSXsEK-m6alZqChxArWUR4-nYLlnFp7Vmwpueg-jcj2hq54HWtdOJ2__wLR6J3iA2hg/exec"
+    style="display:none;"
     allow="geolocation *; camera *"
     allowfullscreen
   ></iframe>
 
-  <!-- Banner fallback kalau GPS/kamera diblok karena iframe -->
-  <div id="fallbackBanner">
-    <button id="fallbackClose" onclick="dismissFallback_()">✕</button>
-    <div class="fb-title">⚠️ Lokasi/Kamera tidak bisa diakses</div>
-    <div class="fb-desc">Browser Anda memblokir izin lokasi atau kamera saat aplikasi dibuka dalam tampilan tertanam. Silakan buka langsung di tab penuh agar absensi bisa berjalan normal.</div>
-    <button onclick="bukaTabPenuh_()">Buka di Tab Penuh</button>
-  </div>
-
+  <!-- ==========================================================
+       SCRIPT
+       ========================================================== -->
   <script>
-    const GAS_URL = document.getElementById('appFrame').src;
+    (function() {
+      'use strict';
 
-    // Sembunyikan loading overlay setelah iframe termuat
-    const frame = document.getElementById('appFrame');
-    const overlay = document.getElementById('loadingOverlay');
-    let overlayHidden = false;
-    function hideOverlay_() {
-      if(overlayHidden) return;
-      overlayHidden = true;
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 300);
-    }
-    frame.addEventListener('load', hideOverlay_);
-    // Jaga-jaga kalau event load telat/tidak terpicu
-    setTimeout(hideOverlay_, 4000);
+      // 🔥 GANTI URL INI DENGAN WEB APP GAS-MU
+      var GAS_URL = 'https://script.google.com/macros/s/AKfycbzNSXsEK-m6alZqChxArWUR4-nYLlnFp7Vmwpueg-jcj2hq54HWtdOJ2__wLR6J3iA2hg/exec';
 
-    // ===== Deteksi permission geolocation =====
-    function showFallback_() {
-      document.getElementById('fallbackBanner').classList.add('show');
-    }
-    function dismissFallback_() {
-      document.getElementById('fallbackBanner').classList.remove('show');
-    }
-    function bukaTabPenuh_() {
-      window.open(GAS_URL, '_blank');
-    }
+      // ===== ELEMEN =====
+      var overlay = document.getElementById('loadingOverlay');
+      var progressBar = document.getElementById('progressBar');
+      var tipsEl = document.getElementById('loadingTips');
+      var frame = document.getElementById('appFrame');
 
-    // Cek status permission geolocation kalau browser mendukung Permissions API
-    if(navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' })
-        .then(res => {
-          if(res.state === 'denied') showFallback_();
-          res.onchange = () => { if(res.state === 'denied') showFallback_(); };
-        })
-        .catch(() => { /* browser lama, biarkan tanpa fallback otomatis */ });
-    }
+      // ===== DAFTAR TIPS RANDOM =====
+      var tips = [
+        '💡 Pastikan GPS aktif untuk absensi lokasi',
+        '📸 Selfie akan digunakan untuk verifikasi wajah',
+        '📍 Absensi hanya bisa dilakukan di radius kantor',
+        '⏰ Jangan lupa absen masuk dan pulang',
+        '🔒 Data Anda aman dengan enkripsi',
+        '📊 Lihat riwayat absensi di menu Riwayat',
+        '👤 Ganti PIN secara berkala di menu Akun',
+        '📱 Aplikasi ini dioptimalkan untuk HP',
+        '⚡ Koneksi internet stabil mempercepat proses',
+        '🔄 Jika error, coba refresh halaman'
+      ];
 
-    // Deteksi khusus in-app browser (WhatsApp, Instagram, Telegram, dll)
-    // yang hampir selalu block GPS di iframe cross-origin.
-    (function detectInAppBrowser_() {
-      const ua = navigator.userAgent || '';
-      const isInApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Twitter|TikTok/i.test(ua);
-      if(isInApp) showFallback_();
+      // ===== TIPS RANDOM =====
+      function randomTips() {
+        var randomIndex = Math.floor(Math.random() * tips.length);
+        tipsEl.textContent = tips[randomIndex];
+      }
+
+      // ===== PROGRESS BAR PALSU =====
+      function fakeProgress() {
+        var progress = 0;
+        var interval = setInterval(function() {
+          // Tambah progress secara acak, tapi makin lama makin pelan
+          var increment = Math.random() * 8 + 2;
+          progress = Math.min(progress + increment, 95);
+          progressBar.style.width = progress + '%';
+          
+          // Ganti tips tiap 3 detik
+          if (Math.floor(progress / 10) % 2 === 0) {
+            randomTips();
+          }
+          
+          if (progress >= 95) {
+            clearInterval(interval);
+          }
+        }, 300);
+        return interval;
+      }
+
+      // ===== MULAI LOADING =====
+      var progressInterval = fakeProgress();
+      randomTips();
+
+      // ===== HIDE OVERLAY =====
+      function hideOverlay() {
+        overlay.classList.add('hidden');
+        setTimeout(function() {
+          overlay.style.display = 'none';
+        }, 500);
+      }
+
+      // ===== FUNGSI REDIRECT =====
+      function redirectToGAS() {
+        // Selesaikan progress bar
+        progressBar.style.width = '100%';
+        tipsEl.textContent = '🚀 Mengalihkan ke aplikasi...';
+        
+        setTimeout(function() {
+          // Redirect ke GAS
+          window.location.href = GAS_URL;
+        }, 600);
+      }
+
+      // ===== DETEKSI JIKA IFRAME BERHASIL LOAD =====
+      frame.addEventListener('load', function() {
+        // Jika iframe berhasil load, kita tetap redirect biar ga ada iframe
+        // Tapi karena kita pake redirect, kita abaikan load event
+        // Dan langsung redirect
+        redirectToGAS();
+      });
+
+      // ===== FALLBACK: Redirect setelah 5 detik =====
+      // Ini untuk jaga-jaga kalo iframe ga bisa load
+      var fallbackTimer = setTimeout(function() {
+        redirectToGAS();
+      }, 5000);
+
+      // ===== CEK KONEKSI INTERNET =====
+      if (!navigator.onLine) {
+        tipsEl.textContent = '⚠️ Tidak ada koneksi internet. Periksa jaringan Anda.';
+        progressBar.style.width = '30%';
+      }
+
+      // ===== ONLINE/OFFLINE DETECTION =====
+      window.addEventListener('online', function() {
+        tipsEl.textContent = '✅ Koneksi pulih. Melanjutkan...';
+        progressBar.style.width = '60%';
+      });
+
+      window.addEventListener('offline', function() {
+        tipsEl.textContent = '⚠️ Koneksi terputus. Menunggu jaringan...';
+        progressBar.style.width = '30%';
+      });
+
+      // ===== TIPS BERUBAH TIAP 4 DETIK =====
+      setInterval(randomTips, 4000);
+
+      // ===== LOG UNTUK DEBUG =====
+      console.log('🚀 Mini-index loading...');
+      console.log('📌 GAS_URL:', GAS_URL);
+      console.log('⏳ Redirect akan terjadi dalam 5 detik (atau lebih cepat)');
+
+      // ===== (OPSIONAL) HIDE FALLBACK TIMER KALAU IFRAME SUDAH LOAD =====
+      // Tapi karena kita pake redirect, fallback timer tetap berjalan
+
     })();
   </script>
+
 </body>
 </html>
