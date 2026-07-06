@@ -35,6 +35,14 @@
       overflow: hidden;
     }
 
+    /* ===== IFRAME FULLSCREEN ===== */
+    #appFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
     /* ===== LOADING OVERLAY ===== */
     #loadingOverlay {
       position: fixed;
@@ -143,13 +151,31 @@
       .loading-sub { font-size: 12px; }
       .progress-wrap { width: 180px; }
     }
+
+    /* ============================================================
+       ⚠️ SEMUA PERINGATAN IFRAME DISEMBUNYIKIN
+       ============================================================ */
+    /* Sembunyikan elemen bawaan GAS yang muncul di iframe */
+    .gas-iframe-warning,
+    [data-gas-iframe-warning],
+    .app-iframe-warning,
+    #gas-iframe-warning,
+    .fallback-banner,
+    #fallbackBanner,
+    .iframe-warning {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      position: absolute !important;
+      left: -9999px !important;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ==========================================================
-       LOADING OVERLAY DENGAN PROGRESS BAR PALSU & TIPS
-       ========================================================== -->
+  <!-- ===== LOADING OVERLAY ===== -->
   <div id="loadingOverlay">
     <div class="logo-icon">📋</div>
     <div class="loading-text">⏳ Memuat Aplikasi Absensi</div>
@@ -169,20 +195,14 @@
     </div>
   </div>
 
-  <!-- ==========================================================
-       IFRAME UTAMA (Redirect akan menggantikan ini)
-       ========================================================== -->
+  <!-- ===== IFRAME UTAMA ===== -->
   <iframe
     id="appFrame"
     src="https://script.google.com/macros/s/AKfycbzNSXsEK-m6alZqChxArWUR4-nYLlnFp7Vmwpueg-jcj2hq54HWtdOJ2__wLR6J3iA2hg/exec"
-    style="display:none;"
     allow="geolocation *; camera *"
     allowfullscreen
   ></iframe>
 
-  <!-- ==========================================================
-       SCRIPT
-       ========================================================== -->
   <script>
     (function() {
       'use strict';
@@ -196,7 +216,7 @@
       var tipsEl = document.getElementById('loadingTips');
       var frame = document.getElementById('appFrame');
 
-      // ===== DAFTAR TIPS RANDOM =====
+      // ===== DAFTAR TIPS =====
       var tips = [
         '💡 Pastikan GPS aktif untuk absensi lokasi',
         '📸 Selfie akan digunakan untuk verifikasi wajah',
@@ -210,7 +230,6 @@
         '🔄 Jika error, coba refresh halaman'
       ];
 
-      // ===== TIPS RANDOM =====
       function randomTips() {
         var randomIndex = Math.floor(Math.random() * tips.length);
         tipsEl.textContent = tips[randomIndex];
@@ -220,68 +239,41 @@
       function fakeProgress() {
         var progress = 0;
         var interval = setInterval(function() {
-          // Tambah progress secara acak, tapi makin lama makin pelan
           var increment = Math.random() * 8 + 2;
           progress = Math.min(progress + increment, 95);
           progressBar.style.width = progress + '%';
-          
-          // Ganti tips tiap 3 detik
-          if (Math.floor(progress / 10) % 2 === 0) {
-            randomTips();
-          }
-          
-          if (progress >= 95) {
-            clearInterval(interval);
-          }
+          if (Math.floor(progress / 10) % 2 === 0) { randomTips(); }
+          if (progress >= 95) { clearInterval(interval); }
         }, 300);
         return interval;
       }
 
       // ===== MULAI LOADING =====
-      var progressInterval = fakeProgress();
+      fakeProgress();
       randomTips();
 
-      // ===== HIDE OVERLAY =====
-      function hideOverlay() {
-        overlay.classList.add('hidden');
-        setTimeout(function() {
-          overlay.style.display = 'none';
-        }, 500);
-      }
-
-      // ===== FUNGSI REDIRECT =====
-      function redirectToGAS() {
-        // Selesaikan progress bar
-        progressBar.style.width = '100%';
-        tipsEl.textContent = '🚀 Mengalihkan ke aplikasi...';
-        
-        setTimeout(function() {
-          // Redirect ke GAS
-          window.location.href = GAS_URL;
-        }, 600);
-      }
-
-      // ===== DETEKSI JIKA IFRAME BERHASIL LOAD =====
+      // ===== SEMBUNYIKAN LOADING SAAT IFRAME LOAD =====
       frame.addEventListener('load', function() {
-        // Jika iframe berhasil load, kita tetap redirect biar ga ada iframe
-        // Tapi karena kita pake redirect, kita abaikan load event
-        // Dan langsung redirect
-        redirectToGAS();
+        progressBar.style.width = '100%';
+        tipsEl.textContent = '✅ Selesai!';
+        setTimeout(function() {
+          overlay.classList.add('hidden');
+          setTimeout(function() { overlay.style.display = 'none'; }, 500);
+        }, 400);
       });
 
-      // ===== FALLBACK: Redirect setelah 5 detik =====
-      // Ini untuk jaga-jaga kalo iframe ga bisa load
-      var fallbackTimer = setTimeout(function() {
-        redirectToGAS();
-      }, 5000);
+      // ===== FALLBACK: HIDE LOADING SETELAH 8 DETIK =====
+      setTimeout(function() {
+        overlay.classList.add('hidden');
+        setTimeout(function() { overlay.style.display = 'none'; }, 500);
+      }, 8000);
 
-      // ===== CEK KONEKSI INTERNET =====
+      // ===== CEK KONEKSI =====
       if (!navigator.onLine) {
         tipsEl.textContent = '⚠️ Tidak ada koneksi internet. Periksa jaringan Anda.';
         progressBar.style.width = '30%';
       }
 
-      // ===== ONLINE/OFFLINE DETECTION =====
       window.addEventListener('online', function() {
         tipsEl.textContent = '✅ Koneksi pulih. Melanjutkan...';
         progressBar.style.width = '60%';
@@ -292,19 +284,12 @@
         progressBar.style.width = '30%';
       });
 
-      // ===== TIPS BERUBAH TIAP 4 DETIK =====
       setInterval(randomTips, 4000);
 
-      // ===== LOG UNTUK DEBUG =====
-      console.log('🚀 Mini-index loading...');
       console.log('📌 GAS_URL:', GAS_URL);
-      console.log('⏳ Redirect akan terjadi dalam 5 detik (atau lebih cepat)');
-
-      // ===== (OPSIONAL) HIDE FALLBACK TIMER KALAU IFRAME SUDAH LOAD =====
-      // Tapi karena kita pake redirect, fallback timer tetap berjalan
+      console.log('✅ Mini-index dengan iframe siap!');
 
     })();
   </script>
-
 </body>
 </html>
