@@ -4,12 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   
-  <!-- ✅ Preconnect buat speed -->
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://lh3.googleusercontent.com">
   
-  <!-- ✅ PWA Support -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1a2a1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,12 +18,8 @@
   <title>Absensi Kantor — SRIKANDI</title>
   
   <style>
-    /* ===== RESET & LAYOUT ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    /* ===== RESET ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
       margin: 0;
@@ -35,7 +29,7 @@
       overflow: hidden;
     }
 
-    /* ===== IFRAME FULLSCREEN ===== */
+    /* ===== IFRAME ===== */
     #appFrame {
       width: 100%;
       height: 100%;
@@ -61,7 +55,6 @@
       pointer-events: none;
     }
 
-    /* ===== SPINNER ===== */
     .spinner-container {
       position: relative;
       width: 56px;
@@ -82,11 +75,8 @@
       transform: translate(-50%, -50%);
       font-size: 20px;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ===== LOADING TEXT ===== */
     .loading-text {
       font-size: 15px;
       font-weight: 600;
@@ -99,7 +89,6 @@
       margin-top: -6px;
     }
 
-    /* ===== PROGRESS BAR PALSU ===== */
     .progress-wrap {
       width: 220px;
       max-width: 70vw;
@@ -117,7 +106,6 @@
       transition: width 0.3s ease;
     }
 
-    /* ===== TIPS RANDOM ===== */
     .loading-tips {
       font-size: 12px;
       color: #94a3b8;
@@ -128,7 +116,6 @@
       min-height: 36px;
     }
 
-    /* ===== LOGO ===== */
     .logo-icon {
       width: 64px;
       height: 64px;
@@ -144,7 +131,6 @@
       margin-bottom: 4px;
     }
 
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 480px) {
       .logo-icon { width: 52px; height: 52px; font-size: 22px; }
       .loading-text { font-size: 14px; }
@@ -153,9 +139,86 @@
     }
 
     /* ============================================================
-       ⚠️ SEMUA PERINGATAN IFRAME DISEMBUNYIKIN
+       ⚠️ TOAST GPS DI TENGAH
        ============================================================ */
-    /* Sembunyikan elemen bawaan GAS yang muncul di iframe */
+    #gpsToast {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.3s ease;
+    }
+    #gpsToast.show {
+      display: flex;
+    }
+
+    .toast-box {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.3s ease;
+    }
+    .toast-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .toast-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .toast-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .toast-btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      width: 100%;
+    }
+    .toast-btn:active {
+      transform: scale(0.97);
+      opacity: 0.8;
+    }
+    .toast-btn.secondary {
+      background: #f1f5f9;
+      color: #0f172a;
+      margin-top: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* ============================================================
+       SEMBUNYIKAN PERINGATAN IFRAME DARI GAS
+       ============================================================ */
     .gas-iframe-warning,
     [data-gas-iframe-warning],
     .app-iframe-warning,
@@ -195,13 +258,26 @@
     </div>
   </div>
 
-  <!-- ===== IFRAME UTAMA ===== -->
+  <!-- ===== IFRAME ===== -->
   <iframe
     id="appFrame"
     src="https://script.google.com/macros/s/AKfycbzNSXsEK-m6alZqChxArWUR4-nYLlnFp7Vmwpueg-jcj2hq54HWtdOJ2__wLR6J3iA2hg/exec"
     allow="geolocation *; camera *"
     allowfullscreen
   ></iframe>
+
+  <!-- ===== TOAST GPS DI TENGAH ===== -->
+  <div id="gpsToast">
+    <div class="toast-box">
+      <div class="toast-icon">📍</div>
+      <div class="toast-title">GPS Diperlukan</div>
+      <div class="toast-desc">
+        Aktifkan GPS dan izinkan akses lokasi di browser agar absensi bisa berjalan normal.
+      </div>
+      <button class="toast-btn" onclick="tutupGpsToast()">Saya Mengerti</button>
+      <button class="toast-btn secondary" onclick="bukaPengaturanGPS()">Buka Pengaturan GPS</button>
+    </div>
+  </div>
 
   <script>
     (function() {
@@ -210,13 +286,12 @@
       // 🔥 GANTI URL INI DENGAN WEB APP GAS-MU
       var GAS_URL = 'https://script.google.com/macros/s/AKfycbzNSXsEK-m6alZqChxArWUR4-nYLlnFp7Vmwpueg-jcj2hq54HWtdOJ2__wLR6J3iA2hg/exec';
 
-      // ===== ELEMEN =====
       var overlay = document.getElementById('loadingOverlay');
       var progressBar = document.getElementById('progressBar');
       var tipsEl = document.getElementById('loadingTips');
       var frame = document.getElementById('appFrame');
 
-      // ===== DAFTAR TIPS =====
+      // ===== TIPS =====
       var tips = [
         '💡 Pastikan GPS aktif untuk absensi lokasi',
         '📸 Selfie akan digunakan untuk verifikasi wajah',
@@ -226,33 +301,31 @@
         '📊 Lihat riwayat absensi di menu Riwayat',
         '👤 Ganti PIN secara berkala di menu Akun',
         '📱 Aplikasi ini dioptimalkan untuk HP',
-        '⚡ Koneksi internet stabil mempercepat proses',
-        '🔄 Jika error, coba refresh halaman'
+        '⚡ Koneksi internet stabil mempercepat proses'
       ];
 
       function randomTips() {
-        var randomIndex = Math.floor(Math.random() * tips.length);
-        tipsEl.textContent = tips[randomIndex];
+        var idx = Math.floor(Math.random() * tips.length);
+        tipsEl.textContent = tips[idx];
       }
 
-      // ===== PROGRESS BAR PALSU =====
+      // ===== PROGRESS BAR =====
       function fakeProgress() {
         var progress = 0;
         var interval = setInterval(function() {
-          var increment = Math.random() * 8 + 2;
-          progress = Math.min(progress + increment, 95);
+          var inc = Math.random() * 8 + 2;
+          progress = Math.min(progress + inc, 95);
           progressBar.style.width = progress + '%';
-          if (Math.floor(progress / 10) % 2 === 0) { randomTips(); }
-          if (progress >= 95) { clearInterval(interval); }
+          if (Math.floor(progress / 10) % 2 === 0) randomTips();
+          if (progress >= 95) clearInterval(interval);
         }, 300);
         return interval;
       }
 
-      // ===== MULAI LOADING =====
       fakeProgress();
       randomTips();
 
-      // ===== SEMBUNYIKAN LOADING SAAT IFRAME LOAD =====
+      // ===== SEMBUNYIKAN LOADING =====
       frame.addEventListener('load', function() {
         progressBar.style.width = '100%';
         tipsEl.textContent = '✅ Selesai!';
@@ -262,13 +335,52 @@
         }, 400);
       });
 
-      // ===== FALLBACK: HIDE LOADING SETELAH 8 DETIK =====
       setTimeout(function() {
         overlay.classList.add('hidden');
         setTimeout(function() { overlay.style.display = 'none'; }, 500);
       }, 8000);
 
-      // ===== CEK KONEKSI =====
+      // ===== TOAST GPS =====
+      function showGpsToast() {
+        var toast = document.getElementById('gpsToast');
+        if (toast) toast.classList.add('show');
+      }
+
+      function tutupGpsToast() {
+        var toast = document.getElementById('gpsToast');
+        if (toast) toast.classList.remove('show');
+      }
+
+      function bukaPengaturanGPS() {
+        if (confirm('Buka pengaturan lokasi? (Anda akan keluar dari aplikasi)')) {
+          window.location.href = 'intent://settings/location#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end';
+        }
+      }
+
+      // Ekspos ke global
+      window.showGpsToast = showGpsToast;
+      window.tutupGpsToast = tutupGpsToast;
+      window.bukaPengaturanGPS = bukaPengaturanGPS;
+
+      // ===== DETEKSI GPS =====
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' })
+          .then(function(res) {
+            if (res.state === 'denied') showGpsToast();
+            res.onchange = function() {
+              if (res.state === 'denied') showGpsToast();
+              else if (res.state === 'granted') tutupGpsToast();
+            };
+          })
+          .catch(function() {});
+      }
+
+      // ===== DETEKSI INAPP BROWSER =====
+      var ua = navigator.userAgent || '';
+      var isInApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Twitter|TikTok/i.test(ua);
+      if (isInApp) showGpsToast();
+
+      // ===== KONEKSI =====
       if (!navigator.onLine) {
         tipsEl.textContent = '⚠️ Tidak ada koneksi internet. Periksa jaringan Anda.';
         progressBar.style.width = '30%';
@@ -285,9 +397,7 @@
       });
 
       setInterval(randomTips, 4000);
-
-      console.log('📌 GAS_URL:', GAS_URL);
-      console.log('✅ Mini-index dengan iframe siap!');
+      console.log('✅ Mini-index with center GPS Toast ready!');
 
     })();
   </script>
